@@ -4,9 +4,8 @@ from flask import request, Blueprint, jsonify, make_response
 import errors
 import models
 import schema
-from datetime import datetime
+from datetime import datetime, date
 import decorators
-
 
 api_calls = Blueprint('api_calls', __name__)
 
@@ -254,3 +253,42 @@ def student_course_api(course_id, teacher_id=None, student_id=None):
             user_course.edit(**validated_data)
 
         return schema.UserCourseSchema(many=False).dump(user_course)
+
+
+@api_calls.route('/students', methods=['GET'])
+def students_api():
+    """ Get all students by course, date, and course status"""
+
+    validated_data = schema.StudentsRequestSchema().load(flask.request.args or {})
+
+    # Set default values for start and end date
+    start_date = validated_data.get('start_date', date.today())
+    course_id = validated_data.get('course_id', 1)
+    complete = validated_data.get('complete', 1)
+
+    students = models.StudentCourse.student_filter(
+        start_date=start_date,
+        course_id=course_id,
+        complete=complete
+    )
+
+    response_dict = dict()
+
+    response = list()
+
+    for student in students:
+
+        if course_id not in response_dict:
+            response_dict[student.course.name] = {}
+
+        response.append({
+                    'user': f'{student.user.name} {student.user.surname}',
+                    'user_id': student.user.id,
+                    'course_start_date': student.date_of_creation.date().strftime('%Y-%m-%d'),
+                    'complete': student.complete,
+                    'course_id': course_id
+        })
+
+        response_dict[student.course.name] = response
+
+    return response_dict

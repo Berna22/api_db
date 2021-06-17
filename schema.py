@@ -47,6 +47,12 @@ class EditStudentCourseRequestTeacherSchema(ma.Schema):
     complete = marshmallow.fields.Boolean()
 
 
+class StudentsRequestSchema(ma.Schema):
+    course_id = marshmallow.fields.Int()
+    start_date = marshmallow.fields.Date()
+    complete = marshmallow.fields.Boolean()
+
+
 ####################
 # RESPONSE SCHEMAS #
 ####################

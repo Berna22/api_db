@@ -7,6 +7,7 @@ from dateutil import parser
 
 import flask_restful
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import cast, Date
 
 
 class NotSQLAlchemyObjectError(Exception):
@@ -227,3 +228,9 @@ class StudentCourse(db.Model, BaseModel):
     def get_course_for_teacher(cls, teacher_id, student_id, course_id):
         return cls.query.join(Course, cls.course_id == Course.id)\
             .filter(Course.teacher_id == teacher_id, cls.student_id == student_id, cls.course_id == course_id).first()
+
+    @classmethod
+    def student_filter(cls, course_id, start_date, complete):
+        return cls.query\
+            .filter(cast(cls.date_of_creation, Date) <= start_date, cls.course_id == course_id, cls.complete == complete)\
+            .all()
