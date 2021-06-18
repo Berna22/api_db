@@ -18,8 +18,6 @@ def create_app(app):
     :return: configured flask app
     :rtype Flask
     """
-    # app = Flask(name, static_folder="static", static_url_path="")
-    # app.config.from_object(config_path)
 
     # Init Sqlalchemy
     db.init_app(app)

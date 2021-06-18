@@ -119,6 +119,7 @@ def register_api():
 
 
 @api_calls.route('/teacher/<int:user_id>/add_course', methods=['PATCH'])
+@decorators.check_session_role(models.RoleEnum.teacher)
 def teacher_course_api(user_id):
     """ Add courses for teacher"""
 
@@ -171,6 +172,7 @@ def teacher_course_api(user_id):
 @api_calls.route('/student/<int:student_id>/add_course/<int:course_id>', methods=['POST'])
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>', methods=['PATCH'])
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>/teacher/<int:teacher_id>', methods=['PATCH'])
+@decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student, return_user=True)
 def student_course_api(course_id, teacher_id=None, student_id=None):
     """ Add courses for student"""
 
@@ -256,6 +258,7 @@ def student_course_api(course_id, teacher_id=None, student_id=None):
 
 
 @api_calls.route('/students', methods=['GET'])
+@decorators.check_session_role(models.RoleEnum.teacher)
 def students_api():
     """ Get all students by course, date, and course status"""
 
@@ -295,6 +298,7 @@ def students_api():
 
 
 @api_calls.route('/teacher/<int:teacher_id>/courses', methods=['GET'])
+@decorators.check_session_role(models.RoleEnum.teacher)
 def teacher_courses_api(teacher_id):
     """ Get all courses for teacher"""
 
