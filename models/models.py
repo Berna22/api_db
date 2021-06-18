@@ -169,6 +169,13 @@ class User(db.Model, BaseModel):
     def get_by_email_and_password(cls, email, password):
         return cls.query.filter(cls.email == email, cls.password == password).first()
 
+    @classmethod
+    def get_course_for_teacher(cls, teacher_id):
+        return cls.query\
+            .join(user_course_association, cls.id == user_course_association.c.user_id)\
+            .join(Course, user_course_association.c.course_id == Course.id)\
+            .filter(cls.id == teacher_id).all()
+
 
 class UserSession(db.Model, BaseModel):
     """

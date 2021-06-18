@@ -282,13 +282,32 @@ def students_api():
             response_dict[student.course.name] = {}
 
         response.append({
-                    'user': f'{student.user.name} {student.user.surname}',
-                    'user_id': student.user.id,
-                    'course_start_date': student.date_of_creation.date().strftime('%Y-%m-%d'),
-                    'complete': student.complete,
-                    'course_id': course_id
+            'user': f'{student.user.name} {student.user.surname}',
+            'user_id': student.user.id,
+            'course_start_date': student.date_of_creation.date().strftime('%Y-%m-%d'),
+            'complete': student.complete,
+            'course_id': course_id
         })
 
         response_dict[student.course.name] = response
 
     return response_dict
+
+
+@api_calls.route('/teacher/<int:teacher_id>/courses', methods=['GET'])
+def teacher_courses_api(teacher_id):
+    """ Get all courses for teacher"""
+
+    teacher = models.User.get_by_id(user_id=teacher_id)
+
+    if not teacher or teacher.role.name != 'teacher':
+        flask.abort(make_response(jsonify(errors=errors.ERR_BAD_USER_ID), 400))
+
+    # Get all courses for teacher
+    teacher_courses = models.User.get_course_for_teacher(teacher_id=teacher_id)
+
+    if not teacher_courses:
+        flask.abort(make_response(jsonify(errors=errors.ERR_NO_COURSES_FOR_TEACHER), 400))
+
+    for teacher_course in teacher_courses:
+        return schema.CourseSchema(many=True).dumps(teacher_course.course, indent=4)
