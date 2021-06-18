@@ -1,6 +1,6 @@
 import enum
 
-from main import db
+from core import db
 from sqlalchemy.ext.declarative import declared_attr
 from datetime import datetime, date
 from dateutil import parser
@@ -203,7 +203,8 @@ class Course(db.Model, BaseModel):
     teacher_id = db.Column(db.Integer, db.ForeignKey('tbl_user.id'))
     name = db.Column(db.String(120), nullable=False)
     price = db.Column(db.Integer, nullable=False)
-    average_mark = db.Column(db.Integer)
+    average_mark = db.Column(db.Integer, default=0)
+    description = db.Column(db.Text)
 
     @classmethod
     def get_by_id(cls, course_id):
@@ -217,7 +218,7 @@ class StudentCourse(db.Model, BaseModel):
     student_id = db.Column(db.Integer, db.ForeignKey('tbl_user.id'))
     complete = db.Column(db.Boolean, default=False, server_default=db.false())
     comment = db.Column(db.Text)
-    mark = db.Column(db.Integer)
+    mark = db.Column(db.Integer, default=0)
     active = db.Column(db.Boolean, default=True, server_default=db.true())
 
     course = db.relationship('Course')

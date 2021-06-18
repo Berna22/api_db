@@ -5,7 +5,7 @@ import errors
 import models
 import schema
 from datetime import datetime, date
-import decorators
+from utils import decorators
 
 api_calls = Blueprint('api_calls', __name__)
 
@@ -22,7 +22,7 @@ def generate_and_update_user_session_key(user):
 
 @api_calls.route('/courses/<int:course_id>', methods=['GET'])
 @api_calls.route('/courses', methods=['GET', 'POST'])
-@decorators.check_session_role(return_user=True)
+@decorators.check_session_role(models.RoleEnum.teacher, return_user=True)
 def course_api(current_user, course_id=None):
     """ Get a course or all courses"""
     if request.method == 'GET':

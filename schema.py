@@ -1,6 +1,6 @@
 import marshmallow
 import models
-from main import ma
+from core import ma
 from flask_marshmallow import Marshmallow
 from marshmallow_enum import EnumField
 
