@@ -173,7 +173,7 @@ def teacher_course_api(user_id):
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>', methods=['PATCH'])
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>/teacher/<int:teacher_id>', methods=['PATCH'])
 @api_calls.route('/students/<int:student_id>/course', methods=['GET'])
-@decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student, return_user=True)
+@decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student)
 def student_course_api(course_id, teacher_id=None, student_id=None):
     """ Add courses for student"""
 
@@ -344,6 +344,15 @@ def student_course_rate_api(student_id):
             flask.abort(make_response(jsonify(errors=errors.ERR_NO_UNMARKED_COURSES), 400))
 
         unmarked_course.edit(**validated_data)
+
+        # Rate course average mark
+        course = models.Course.get_by_id(course_id=unmarked_course.course_id)
+
+        if course.average_mark == 0:
+            course.edit(average_mark=validated_data.get('mark'))
+
+        else:
+            course.edit(average_mark=(course.average_mark + validated_data.get('mark')) / 2)
 
         return schema.UserCourseSchema(many=False).dump(unmarked_course)
 
