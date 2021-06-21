@@ -12,6 +12,7 @@ from marshmallow_enum import EnumField
 class CourseRequestSchema(ma.Schema):
     name = marshmallow.fields.Str(required=True)
     price = marshmallow.fields.Int(required=True)
+    description = marshmallow.fields.Str()
 
 
 class UserRequestSchema(ma.Schema):
@@ -51,6 +52,11 @@ class StudentsRequestSchema(ma.Schema):
     course_id = marshmallow.fields.Int()
     start_date = marshmallow.fields.Date()
     complete = marshmallow.fields.Boolean()
+
+
+class ObligatoryStudentCourseRequestSchema(ma.Schema):
+    mark = marshmallow.fields.Int(required=True)
+    comment = marshmallow.fields.Str(required=True)
 
 
 ####################

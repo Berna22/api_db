@@ -242,3 +242,10 @@ class StudentCourse(db.Model, BaseModel):
         return cls.query\
             .filter(cast(cls.date_of_creation, Date) <= start_date, cls.course_id == course_id, cls.complete == complete)\
             .all()
+
+    @classmethod
+    def get_unmarked_course(cls, student_id):
+        return cls.query\
+            .filter(cls.student_id == student_id,
+                    cls.mark == 0)\
+            .order_by(db.desc(cls.date_of_creation)).first()

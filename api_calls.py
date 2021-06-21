@@ -172,6 +172,7 @@ def teacher_course_api(user_id):
 @api_calls.route('/student/<int:student_id>/add_course/<int:course_id>', methods=['POST'])
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>', methods=['PATCH'])
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>/teacher/<int:teacher_id>', methods=['PATCH'])
+@api_calls.route('/students/<int:student_id>/course', methods=['GET'])
 @decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student, return_user=True)
 def student_course_api(course_id, teacher_id=None, student_id=None):
     """ Add courses for student"""
@@ -256,6 +257,18 @@ def student_course_api(course_id, teacher_id=None, student_id=None):
 
         return schema.UserCourseSchema(many=False).dump(user_course)
 
+    if request.method == 'GET':
+        """ Gets all student's courses"""
+
+        student = models.User.get_by_role(user_id=student_id, role='student')
+
+        if not student:
+            flask.abort(make_response(jsonify(errors=errors.ERR_BAD_USER_ID), 400))
+
+        courses = models.StudentCourse.get_all_for_user(student_id=student_id)
+
+        return schema.UserCourseSchema(many=True).dumps(courses, indent=4)
+
 
 @api_calls.route('/students', methods=['GET'])
 @decorators.check_session_role(models.RoleEnum.teacher)
@@ -315,3 +328,28 @@ def teacher_courses_api(teacher_id):
 
     for teacher_course in teacher_courses:
         return schema.CourseSchema(many=True).dumps(teacher_course.course, indent=4)
+
+
+@api_calls.route('/student/<int:student_id>/rate_course', methods=['GET', 'POST'])
+@decorators.check_session_role(models.RoleEnum.student)
+def student_course_rate_api(student_id):
+    """ For student mark popup"""
+
+    if request.method == 'POST':
+        validated_data = schema.ObligatoryStudentCourseRequestSchema().load(flask.request.json or {})
+
+        unmarked_course = models.StudentCourse.get_unmarked_course(student_id=student_id)
+
+        if not unmarked_course:
+            flask.abort(make_response(jsonify(errors=errors.ERR_NO_UNMARKED_COURSES), 400))
+
+        unmarked_course.edit(**validated_data)
+
+        return schema.UserCourseSchema(many=False).dump(unmarked_course)
+
+    if request.method == 'GET':
+        """ Gets student's last unmarked course"""
+
+        unmarked_course = models.StudentCourse.get_unmarked_course(student_id=student_id)
+
+        return schema.UserCourseSchema(many=False).dump(unmarked_course)
