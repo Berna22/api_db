@@ -1,7 +1,8 @@
 import marshmallow
+import simplejson as simplejson
+
 import models
 from core import ma
-from flask_marshmallow import Marshmallow
 from marshmallow_enum import EnumField
 
 
@@ -94,6 +95,8 @@ class TeacherCourseSchema(ma.SQLAlchemyAutoSchema):
 class UserCourseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = models.StudentCourse
+        json_module = simplejson
 
     course = ma.Nested(CourseSchema)
     role = EnumField(models.models.RoleEnum)
+    average_mark = marshmallow.fields.Decimal()

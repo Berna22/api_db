@@ -1,6 +1,6 @@
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy as FlaskSQLAlchemy
-from flask import Flask, request, current_app
+from flask import request, current_app
 from flask_cors import CORS
 
 cors = CORS(reseources={r"/public/*": {"origins": "*"}})

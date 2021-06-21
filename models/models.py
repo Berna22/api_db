@@ -203,7 +203,7 @@ class Course(db.Model, BaseModel):
     teacher_id = db.Column(db.Integer, db.ForeignKey('tbl_user.id'))
     name = db.Column(db.String(120), nullable=False)
     price = db.Column(db.Integer, nullable=False)
-    average_mark = db.Column(db.Integer, default=0)
+    average_mark = db.Column(db.Numeric(1, 2), default=0)
     description = db.Column(db.Text)
 
     @classmethod
