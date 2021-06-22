@@ -389,17 +389,34 @@ def course_student_api(current_user, course_id=None):
         if course_id:
             return schema.CourseSchema(many=False).dump(models.Course.get_by_id(course_id))
 
+        # Request args
+        validated_data = schema.StudentCourseListRequestSchema().load(flask.request.args or {})
+
+        # Set default values for start and end date
+        course_name = validated_data.get('course_name', 'Flask')
+        teacher_name = validated_data.get('teacher_name', 'Jason')
+        # complete = validated_data.get('complete', 1)
+
         # All courses the student in enrolled in
-        all_enrolled_ids = [x.id for x in models.StudentCourse.get_all_for_user(student_id=current_user.id)]
+        all_enrolled_ids = [x.course_id for x in models.StudentCourse.get_all_for_user(student_id=current_user.id)]
 
         # All existing courses
-        all_course_ids = [x.id for x in models.Course.get_all()]
+        if validated_data:
+            # Filter courses
+            all_course_ids = [x.id for x in models.Course.get_for_student_filter(
+                course_name=course_name,
+                teacher_name=teacher_name)]
+
+        else:
+            # Get all courses
+            all_course_ids = [x.id for x in models.Course.get_all()]
 
         course_dict = dict()
 
         # Get only the courses the student is not enrolled in
         for course_id in all_course_ids:
             if course_id not in all_enrolled_ids:
+
                 course = models.Course.get_by_id(course_id=course_id)
 
                 if course_id in course_dict:

@@ -60,6 +60,11 @@ class ObligatoryStudentCourseRequestSchema(ma.Schema):
     comment = marshmallow.fields.Str(required=True)
 
 
+class StudentCourseListRequestSchema(ma.Schema):
+    course_name = marshmallow.fields.Str()
+    teacher_name = marshmallow.fields.Str()
+
+
 ####################
 # RESPONSE SCHEMAS #
 ####################

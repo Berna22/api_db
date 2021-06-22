@@ -214,6 +214,11 @@ class Course(db.Model, BaseModel):
     user = db.relationship('User')
 
     @classmethod
+    def get_for_student_filter(cls, course_name, teacher_name):
+        return cls.query.join(User, cls.teacher_id == User.id)\
+            .filter(cls.name == course_name, User.name == teacher_name).all()
+
+    @classmethod
     def get_by_id(cls, course_id):
         return cls.query.filter(cls.id == course_id, ~cls.deleted).first()
 
