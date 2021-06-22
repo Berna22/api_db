@@ -67,6 +67,9 @@ class ObligatoryStudentCourseRequestSchema(ma.Schema):
 class CourseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = models.Course
+        json_module = simplejson
+
+    average_mark = marshmallow.fields.Decimal()
 
 
 class UserSchema(ma.SQLAlchemyAutoSchema):

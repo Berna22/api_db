@@ -253,3 +253,7 @@ class StudentCourse(db.Model, BaseModel):
             .filter(cls.student_id == student_id,
                     cls.mark == 0)\
             .order_by(db.desc(cls.date_of_creation)).first()
+
+    @classmethod
+    def get_all_courses_not_enrolled(cls, student_id):
+        return cls.query.filter(cls.student_id != student_id).all()

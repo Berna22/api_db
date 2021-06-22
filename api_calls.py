@@ -23,7 +23,7 @@ def generate_and_update_user_session_key(user):
 @api_calls.route('/courses/<int:course_id>', methods=['GET'])
 @api_calls.route('/courses', methods=['GET', 'POST'])
 @decorators.check_session_role(models.RoleEnum.teacher, return_user=True)
-def course_api(current_user, course_id=None):
+def course_teacher_api(current_user, course_id=None):
     """ Get a course or all courses"""
     if request.method == 'GET':
 
@@ -185,7 +185,7 @@ def teacher_course_api(user_id):
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>', methods=['PATCH'])
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>/teacher/<int:teacher_id>', methods=['PATCH'])
 @api_calls.route('/students/<int:student_id>/course', methods=['GET'])
-@decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student)
+@decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student, return_user=True)
 def student_course_api(course_id, teacher_id=None, student_id=None):
     """ Add courses for student"""
 
@@ -374,3 +374,25 @@ def student_course_rate_api(student_id):
         unmarked_course = models.StudentCourse.get_unmarked_course(student_id=student_id)
 
         return schema.UserCourseSchema(many=False).dump(unmarked_course)
+
+
+@api_calls.route('/student/courses/<int:course_id>', methods=['GET'])
+@api_calls.route('/student/courses', methods=['GET'])
+@decorators.check_session_role(models.RoleEnum.student, return_user=True)
+def course_student_api(current_user, course_id=None):
+    """ Get a course or all courses"""
+
+    if request.method == 'GET':
+
+        if course_id:
+            return schema.CourseSchema(many=False).dump(models.Course.get_by_id(course_id))
+
+        all_courses_not_enrolled = models.StudentCourse.get_all_courses_not_enrolled(student_id=current_user.id)
+
+        print(all_courses_not_enrolled)
+
+        return {}
+
+
+        # return schema.CourseSchema(many=True).dumps(models.Course.get_all(), indent=4)
+
