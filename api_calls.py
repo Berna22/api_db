@@ -294,7 +294,7 @@ def students_api():
     # Set default values for start and end date
     start_date = validated_data.get('start_date', date.today())
     course_id = validated_data.get('course_id', 1)
-    complete = validated_data.get('complete', 1)
+    complete = validated_data.get('complete', 0)
 
     students = models.StudentCourse.student_filter(
         start_date=start_date,
@@ -316,12 +316,13 @@ def students_api():
             'user_id': student.user.id,
             'course_start_date': student.date_of_creation.date().strftime('%Y-%m-%d'),
             'complete': student.complete,
-            'course_id': course_id
+            'course_id': course_id,
+            'course_name': student.course.name
         })
 
-        response_dict[student.course.name] = response
+        # response_dict[student.course.name] = response
 
-    return response_dict
+    return jsonify(response)
 
 
 @api_calls.route('/teacher/<int:teacher_id>/courses', methods=['GET'])
@@ -393,23 +394,16 @@ def course_student_api(current_user, course_id=None):
         validated_data = schema.StudentCourseListRequestSchema().load(flask.request.args or {})
 
         # Set default values for start and end date
-        course_name = validated_data.get('course_name', 'Flask')
-        teacher_name = validated_data.get('teacher_name', 'Jason')
-        # complete = validated_data.get('complete', 1)
+        course_name = validated_data.get('course_name')
+        teacher_name = validated_data.get('teacher_name')
 
         # All courses the student in enrolled in
         all_enrolled_ids = [x.course_id for x in models.StudentCourse.get_all_for_user(student_id=current_user.id)]
 
-        # All existing courses
-        if validated_data:
-            # Filter courses
-            all_course_ids = [x.id for x in models.Course.get_for_student_filter(
+        # Filter courses
+        all_course_ids = [x.id for x in models.Course.get_for_student_filter(
                 course_name=course_name,
                 teacher_name=teacher_name)]
-
-        else:
-            # Get all courses
-            all_course_ids = [x.id for x in models.Course.get_all()]
 
         course_dict = dict()
 

@@ -215,8 +215,15 @@ class Course(db.Model, BaseModel):
 
     @classmethod
     def get_for_student_filter(cls, course_name, teacher_name):
-        return cls.query.join(User, cls.teacher_id == User.id)\
-            .filter(cls.name == course_name, User.name == teacher_name).all()
+        courses = cls.query.join(User, cls.teacher_id == User.id).filter(~cls.deleted)
+
+        if course_name:
+            courses = courses.filter(cls.name == course_name)
+
+        if teacher_name:
+            courses = courses.filter(cls.teacher_id == User.id)
+
+        return courses.all()
 
     @classmethod
     def get_by_id(cls, course_id):
