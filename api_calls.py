@@ -320,8 +320,6 @@ def students_api():
             'course_name': student.course.name
         })
 
-        # response_dict[student.course.name] = response
-
     return jsonify(response)
 
 
@@ -402,8 +400,8 @@ def course_student_api(current_user, course_id=None):
 
         # Filter courses
         all_course_ids = [x.id for x in models.Course.get_for_student_filter(
-                course_name=course_name,
-                teacher_name=teacher_name)]
+            course_name=course_name,
+            teacher_name=teacher_name)]
 
         course_dict = dict()
 

@@ -159,26 +159,26 @@ class User(db.Model, BaseModel):
 
     @classmethod
     def get_by_id(cls, user_id):
-        return cls.query.filter(cls.id == user_id, cls.deleted).first()
+        return cls.query.filter(cls.id == user_id, ~cls.deleted).first()
 
     @classmethod
     def get_by_role(cls, user_id, role):
-        return cls.query.filter(cls.role == role, cls.id == user_id, cls.deleted).first()
+        return cls.query.filter(cls.role == role, cls.id == user_id, ~cls.deleted).first()
 
     @classmethod
     def get_all_by_role(cls, role):
-        return cls.query.filter(cls.role == role, cls.deleted).all()
+        return cls.query.filter(cls.role == role, ~cls.deleted).all()
 
     @classmethod
     def get_by_email_and_password(cls, email, password):
-        return cls.query.filter(cls.email == email, cls.password == password, cls.deleted).first()
+        return cls.query.filter(cls.email == email, cls.password == password, ~cls.deleted).first()
 
     @classmethod
     def get_course_for_teacher(cls, teacher_id):
         return cls.query\
             .join(user_course_association, cls.id == user_course_association.c.user_id)\
             .join(Course, user_course_association.c.course_id == Course.id)\
-            .filter(cls.id == teacher_id, cls.deleted).all()
+            .filter(cls.id == teacher_id, ~cls.deleted).all()
 
 
 class UserSession(db.Model, BaseModel):
