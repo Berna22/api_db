@@ -44,6 +44,10 @@ def course_teacher_api(current_user, course_id=None):
         # Create course
         course = models.Course.create(**validated_data)
 
+        # Add new course to teacher course connection table
+        if course not in current_user.course:
+            current_user.course.append(course)
+
         return schema.CourseSchema(many=False).dump(course)
 
 
