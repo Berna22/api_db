@@ -114,6 +114,10 @@ class BaseModel(object):
         if isinstance(self, db.Model):
             edit_sqlalchemy_object(self, set_nulls, **kwargs)
 
+    @declared_attr
+    def deleted(self):
+        return db.deferred(db.Column(db.Boolean, server_default=db.false(), default=False))
+
     @classmethod
     def get_all(cls):
         if hasattr(cls, "query"):

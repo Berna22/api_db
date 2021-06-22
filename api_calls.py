@@ -87,6 +87,18 @@ def login_api():
     return user_schema
 
 
+@api_calls.route('/logout', methods=['POST'])
+def logout_api():
+    """
+    Logout for users
+    """
+    session = models.UserSession.get_by_session_id(session_id=flask.request.headers.get('session_id'))
+    if session:
+        session.edit(deleted=True)
+
+    return {}
+
+
 @api_calls.route('/user/session', methods=['GET'])
 def session_api():
     """ Get session for users"""
