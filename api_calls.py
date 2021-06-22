@@ -1,3 +1,5 @@
+import json
+
 import flask
 from flask import request, Blueprint, jsonify, make_response
 
@@ -215,7 +217,7 @@ def student_course_api(course_id, teacher_id=None, student_id=None):
             flask.abort(make_response(jsonify(errors=errors.ERR_STUDENT_ALREADY_ENROLLED_IN_COURSE), 400))
 
         # Get all existing courses for user
-        user_courses = models.StudentCourse.get_all_for_user(student_id=student_id)
+        user_courses = models.StudentCourse.get_all_for_user_complete(student_id=student_id)
         # If user has more than 2 incomplete courses, raise error
         if len(user_courses) >= 2:
             flask.abort(make_response(jsonify(errors=errors.ERR_TOO_MANY_COURSES_FOR_STUDENT), 400))
@@ -277,7 +279,7 @@ def student_course_api(course_id, teacher_id=None, student_id=None):
         if not student:
             flask.abort(make_response(jsonify(errors=errors.ERR_BAD_USER_ID), 400))
 
-        courses = models.StudentCourse.get_all_for_user(student_id=student_id)
+        courses = models.StudentCourse.get_all_for_user_complete(student_id=student_id)
 
         return schema.UserCourseSchema(many=True).dumps(courses, indent=4)
 
@@ -387,12 +389,29 @@ def course_student_api(current_user, course_id=None):
         if course_id:
             return schema.CourseSchema(many=False).dump(models.Course.get_by_id(course_id))
 
-        all_courses_not_enrolled = models.StudentCourse.get_all_courses_not_enrolled(student_id=current_user.id)
+        # All courses the student in enrolled in
+        all_enrolled_ids = [x.id for x in models.StudentCourse.get_all_for_user(student_id=current_user.id)]
 
-        print(all_courses_not_enrolled)
+        # All existing courses
+        all_course_ids = [x.id for x in models.Course.get_all()]
 
-        return {}
+        course_dict = dict()
 
+        # Get only the courses the student is not enrolled in
+        for course_id in all_course_ids:
+            if course_id not in all_enrolled_ids:
+                course = models.Course.get_by_id(course_id=course_id)
 
-        # return schema.CourseSchema(many=True).dumps(models.Course.get_all(), indent=4)
+                if course_id in course_dict:
+                    course_dict[course_id] = {}
 
+                else:
+                    course_dict[course_id] = {'teacher_id': course.teacher_id,
+                                              'teacher_name': f'{course.user.name} {course.user.surname}',
+                                              'course_id': course_id,
+                                              'course_name': course.name,
+                                              'price': course.price,
+                                              'average_mark': course.average_mark,
+                                              'description': course.description}
+
+        return jsonify([value for value in course_dict.values()])

@@ -159,26 +159,26 @@ class User(db.Model, BaseModel):
 
     @classmethod
     def get_by_id(cls, user_id):
-        return cls.query.filter(cls.id == user_id).first()
+        return cls.query.filter(cls.id == user_id, cls.deleted).first()
 
     @classmethod
     def get_by_role(cls, user_id, role):
-        return cls.query.filter(cls.role == role, cls.id == user_id).first()
+        return cls.query.filter(cls.role == role, cls.id == user_id, cls.deleted).first()
 
     @classmethod
     def get_all_by_role(cls, role):
-        return cls.query.filter(cls.role == role).all()
+        return cls.query.filter(cls.role == role, cls.deleted).all()
 
     @classmethod
     def get_by_email_and_password(cls, email, password):
-        return cls.query.filter(cls.email == email, cls.password == password).first()
+        return cls.query.filter(cls.email == email, cls.password == password, cls.deleted).first()
 
     @classmethod
     def get_course_for_teacher(cls, teacher_id):
         return cls.query\
             .join(user_course_association, cls.id == user_course_association.c.user_id)\
             .join(Course, user_course_association.c.course_id == Course.id)\
-            .filter(cls.id == teacher_id).all()
+            .filter(cls.id == teacher_id, cls.deleted).all()
 
 
 class UserSession(db.Model, BaseModel):
@@ -198,6 +198,7 @@ class UserSession(db.Model, BaseModel):
         return cls.query.filter(
             cls.session_id == session_id,
             db.cast(cls.date_of_creation, db.Date) == date.today(),
+            ~cls.deleted,
         ).first()
 
 
@@ -210,9 +211,11 @@ class Course(db.Model, BaseModel):
     average_mark = db.Column(db.Numeric(1, 2), default=0)
     description = db.Column(db.Text)
 
+    user = db.relationship('User')
+
     @classmethod
     def get_by_id(cls, course_id):
-        return cls.query.filter(cls.id == course_id).first()
+        return cls.query.filter(cls.id == course_id, ~cls.deleted).first()
 
 
 class StudentCourse(db.Model, BaseModel):
@@ -229,31 +232,39 @@ class StudentCourse(db.Model, BaseModel):
     user = db.relationship('User')
 
     @classmethod
+    def get_all_for_user_complete(cls, student_id):
+        return cls.query.filter(cls.student_id == student_id, ~cls.complete, ~cls.deleted).all()
+
+    @classmethod
     def get_all_for_user(cls, student_id):
-        return cls.query.filter(cls.student_id == student_id, ~cls.complete).all()
+        return cls.query.filter(cls.student_id == student_id, ~cls.deleted).all()
 
     @classmethod
     def get_course_for_user(cls, student_id, course_id):
-        return cls.query.filter(cls.student_id == student_id, cls.course_id == course_id).first()
+        return cls.query.filter(cls.student_id == student_id, cls.course_id == course_id, ~cls.deleted).first()
 
     @classmethod
     def get_course_for_teacher(cls, teacher_id, student_id, course_id):
         return cls.query.join(Course, cls.course_id == Course.id)\
-            .filter(Course.teacher_id == teacher_id, cls.student_id == student_id, cls.course_id == course_id).first()
+            .filter(Course.teacher_id == teacher_id,
+                    cls.student_id == student_id,
+                    cls.course_id == course_id,
+                    ~cls.deleted).first()
 
     @classmethod
     def student_filter(cls, course_id, start_date, complete):
         return cls.query\
-            .filter(cast(cls.date_of_creation, Date) <= start_date, cls.course_id == course_id, cls.complete == complete)\
+            .filter(cast(cls.date_of_creation, Date) <= start_date,
+                    cls.course_id == course_id,
+                    cls.complete == complete,
+                    ~cls.deleted)\
             .all()
 
     @classmethod
     def get_unmarked_course(cls, student_id):
         return cls.query\
             .filter(cls.student_id == student_id,
-                    cls.mark == 0)\
+                    cls.mark == 0,
+                    ~cls.deleted)\
             .order_by(db.desc(cls.date_of_creation)).first()
 
-    @classmethod
-    def get_all_courses_not_enrolled(cls, student_id):
-        return cls.query.filter(cls.student_id != student_id).all()
