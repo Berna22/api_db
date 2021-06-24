@@ -465,3 +465,99 @@ def course_student_api(current_user, course_id=None):
                                               'description': course.description}
 
         return jsonify([value for value in course_dict.values()])
+
+
+@api_calls.route('/student/request_course/<int:course_id>', methods=['POST'])
+@decorators.check_session_role(models.RoleEnum.student, return_user=True)
+def course_request_student_api(current_user, course_id):
+    """ Student course request"""
+
+    if current_user.role.name != 'student':
+        flask.abort(make_response(jsonify(errors=errors.ERR_BAD_ROLE_REQUEST), 400))
+
+    validated_data = schema.StudentCourseRequestSchema().load(flask.request.json or {})
+
+    course = models.Course.get_by_id(course_id=course_id)
+
+    if not course:
+        flask.abort(make_response(jsonify(errors=errors.ERR_BAD_COURSE_ID), 400))
+
+    # Check if student is already enrolled in course
+    check_course = models.StudentCourse.get_course_for_user(student_id=current_user.id, course_id=course_id)
+
+    if check_course:
+        flask.abort(make_response(jsonify(errors=errors.ERR_STUDENT_ALREADY_ENROLLED_IN_COURSE), 400))
+
+    # Check if student has already sent a request that was accepted
+    accepted_course = models.StudentCourseRequest.get_accepted_for_student(student_id=current_user.id,
+                                                                           course_id=course_id)
+    if accepted_course:
+        flask.abort(make_response(jsonify(errors=errors.ERR_STUDENT_ALREADY_ACCEPTED_TO_COURSE), 400))
+
+        # Set data for request table
+    requested_course = models.StudentCourseRequest.create(**{'course_id': course_id,
+                                                             'student_id': current_user.id,
+                                                             'teacher_id': course.teacher_id,
+                                                             'comment': validated_data.get('comment')})
+
+    return schema.CourseReqSchema(many=False).dump(requested_course)
+
+
+@api_calls.route('/teacher/request_course', methods=['GET'])
+@api_calls.route('/teacher/request_course/<int:course_id>', methods=['POST'])
+@decorators.check_session_role(models.RoleEnum.teacher, return_user=True)
+def course_request_teacher_api(current_user, course_id=None):
+    """ Teacher course request response"""
+
+    if request.method == 'GET':
+        """ Get all requested courses for teacher"""
+
+        if current_user.role.name != 'teacher':
+            flask.abort(make_response(jsonify(errors=errors.ERR_BAD_ROLE_REQUEST), 400))
+
+        # Get all requested courses for teacher
+        req_courses = models.StudentCourseRequest.get_all_requested_for_teacher(teacher_id=current_user.id)
+
+        course_list = list()
+
+        for req_course in req_courses:
+            course_list.append({'course_id': req_course.course_id,
+                                'student_id': req_course.student_id,
+                                'teacher_id': req_course.teacher_id,
+                                'comment': req_course.comment,
+                                'accepted': req_course.accepted})
+
+        return jsonify(course_list)
+
+    if request.method == 'POST':
+        """ Accept or reject students' request to attend course"""
+
+        if current_user.role.name != 'teacher':
+            flask.abort(make_response(jsonify(errors=errors.ERR_BAD_ROLE_REQUEST), 400))
+
+        validated_data = schema.TeacherCourseAcceptRequestSchema().load(flask.request.json or {})
+
+        req_course = models.StudentCourseRequest.accept_or_reject_request(course_id=course_id)
+
+        if not req_course:
+            flask.abort(make_response(jsonify(errors=errors.ERR_BAD_COURSE_ID), 400))
+
+        if validated_data.get('accepted') == 1:
+            # Edit accepted flag
+            req_course.edit(accepted=True)
+
+            # Check if student is already in the course
+            course_check = models.StudentCourse.get_course_for_user(student_id=req_course.student_id,
+                                                                    course_id=req_course.course_id)
+
+            if course_check:
+                flask.abort(make_response(jsonify(errors=errors.ERR_STUDENT_ALREADY_ENROLLED_IN_COURSE), 400))
+
+            # Add student to course
+            models.StudentCourse.create(**{'course_id': req_course.course_id,
+                                           'student_id': req_course.student_id,
+                                           })
+
+            return schema.CourseReqSchema(many=False).dump(req_course)
+
+        return {}

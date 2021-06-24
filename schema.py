@@ -71,6 +71,10 @@ class StudentCourseListRequestSchema(ma.Schema):
     teacher_name = marshmallow.fields.Str()
 
 
+class TeacherCourseAcceptRequestSchema(ma.Schema):
+    accepted = marshmallow.fields.Boolean(required=True)
+
+
 ####################
 # RESPONSE SCHEMAS #
 ####################
@@ -114,3 +118,10 @@ class UserCourseSchema(ma.SQLAlchemyAutoSchema):
     course = ma.Nested(CourseSchema)
     role = EnumField(models.models.RoleEnum)
     average_mark = marshmallow.fields.Decimal()
+
+
+class CourseReqSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = models.StudentCourseRequest
+
+    course = ma.Nested(CourseSchema, many=True)

@@ -125,7 +125,7 @@ class BaseModel(object):
 
     @classmethod
     def _get_all_paginate(cls, cls_query, page, per_page):
-        return cls_query.\
+        return cls_query. \
             order_by(cls.date_of_creation.desc()) \
             .paginate(page=page, per_page=per_page, error_out=False)
 
@@ -175,9 +175,9 @@ class User(db.Model, BaseModel):
 
     @classmethod
     def get_course_for_teacher(cls, teacher_id):
-        return cls.query\
-            .join(user_course_association, cls.id == user_course_association.c.user_id)\
-            .join(Course, user_course_association.c.course_id == Course.id)\
+        return cls.query \
+            .join(user_course_association, cls.id == user_course_association.c.user_id) \
+            .join(Course, user_course_association.c.course_id == Course.id) \
             .filter(cls.id == teacher_id, ~cls.deleted).all()
 
 
@@ -257,7 +257,7 @@ class StudentCourse(db.Model, BaseModel):
 
     @classmethod
     def get_course_for_teacher(cls, teacher_id, student_id, course_id):
-        return cls.query.join(Course, cls.course_id == Course.id)\
+        return cls.query.join(Course, cls.course_id == Course.id) \
             .filter(Course.teacher_id == teacher_id,
                     cls.student_id == student_id,
                     cls.course_id == course_id,
@@ -265,18 +265,42 @@ class StudentCourse(db.Model, BaseModel):
 
     @classmethod
     def student_filter(cls, course_id, start_date, complete):
-        return cls.query\
+        return cls.query \
             .filter(cast(cls.date_of_creation, Date) <= start_date,
                     cls.course_id == course_id,
                     cls.complete == complete,
-                    ~cls.deleted)\
+                    ~cls.deleted) \
             .all()
 
     @classmethod
     def get_unmarked_course(cls, student_id):
-        return cls.query\
+        return cls.query \
             .filter(cls.student_id == student_id,
                     cls.mark == 0,
-                    ~cls.deleted)\
+                    ~cls.deleted) \
             .order_by(db.desc(cls.date_of_creation)).first()
 
+
+class StudentCourseRequest(db.Model, BaseModel):
+    __tablename__ = 'tbl_student_course_request'
+
+    course_id = db.Column(db.Integer, db.ForeignKey('tbl_course.id'))
+    student_id = db.Column(db.Integer)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('tbl_user.id'))
+    comment = db.Column(db.Text)
+    accepted = db.Column(db.Boolean, default=False, server_default=db.false())
+
+    course = db.relationship('Course')
+    user = db.relationship('User')
+
+    @classmethod
+    def get_all_requested_for_teacher(cls, teacher_id):
+        return cls.query.filter(cls.teacher_id == teacher_id, ~cls.deleted).all()
+
+    @classmethod
+    def accept_or_reject_request(cls, course_id):
+        return cls.query.filter(cls.course_id == course_id, ~cls.deleted).first()
+
+    @classmethod
+    def get_accepted_for_student(cls, student_id, course_id):
+        return cls.query.filter(cls.student_id == student_id, cls.course_id == course_id, cls.accepted).first()
