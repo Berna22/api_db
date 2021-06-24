@@ -16,6 +16,12 @@ class CourseRequestSchema(ma.Schema):
     description = marshmallow.fields.Str()
 
 
+class EditCourseRequestSchema(ma.Schema):
+    name = marshmallow.fields.Str()
+    price = marshmallow.fields.Int()
+    description = marshmallow.fields.Str()
+
+
 class UserRequestSchema(ma.Schema):
     email = marshmallow.fields.Email(required=True)
     password = marshmallow.fields.Str(required=True)

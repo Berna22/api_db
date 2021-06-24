@@ -22,7 +22,7 @@ def generate_and_update_user_session_key(user):
     return session_key
 
 
-@api_calls.route('/courses/<int:course_id>', methods=['GET'])
+@api_calls.route('/courses/<int:course_id>', methods=['GET', 'PATCH', 'DELETE'])
 @api_calls.route('/courses', methods=['GET', 'POST'])
 @decorators.check_session_role(models.RoleEnum.teacher, return_user=True)
 def course_teacher_api(current_user, course_id=None):
@@ -49,6 +49,34 @@ def course_teacher_api(current_user, course_id=None):
             current_user.course.append(course)
 
         return schema.CourseSchema(many=False).dump(course)
+
+    if request.method == 'PATCH':
+        """ Edit Course"""
+
+        validated_data = schema.CourseRequestSchema().load(flask.request.json or {})
+
+        course = models.Course.get_by_id(course_id=course_id)
+
+        # Edit course
+        course.edit(**validated_data)
+
+        return schema.CourseSchema(many=False).dump(course)
+
+    if request.method == 'DELETE':
+
+        """ Delete course"""
+
+        course = models.Course.get_by_id(course_id=course_id)
+
+        # Update course deleted flag
+        course.edit(deleted=True)
+
+        return {}
+
+
+
+
+
 
 
 @api_calls.route('/users/<int:user_id>', methods=['GET'])
