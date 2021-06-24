@@ -57,6 +57,13 @@ def course_teacher_api(current_user, course_id=None):
 
         course = models.Course.get_by_id(course_id=course_id)
 
+        if not course:
+            flask.abort(make_response(jsonify(errors=errors.ERR_BAD_COURSE_ID), 400))
+
+        # If logged in teacher didn't create the course, throw error
+        if current_user.id != course.teacher_id:
+            flask.abort(make_response(jsonify(errors=errors.ERR_NOT_ALLOWED), 400))
+
         # Edit course
         course.edit(**validated_data)
 
@@ -68,15 +75,17 @@ def course_teacher_api(current_user, course_id=None):
 
         course = models.Course.get_by_id(course_id=course_id)
 
+        if not course:
+            flask.abort(make_response(jsonify(errors=errors.ERR_NOT_ALLOWED), 400))
+
+        # If logged in teacher didn't create the course, throw error
+        if current_user.id != course.teacher_id:
+            flask.abort(make_response(jsonify(errors=errors.ERR_NOT_ALLOWED), 400))
+
         # Update course deleted flag
         course.edit(deleted=True)
 
         return {}
-
-
-
-
-
 
 
 @api_calls.route('/users/<int:user_id>', methods=['GET'])
