@@ -494,7 +494,7 @@ def course_request_student_api(current_user, course_id):
     if accepted_course:
         flask.abort(make_response(jsonify(errors=errors.ERR_STUDENT_ALREADY_ACCEPTED_TO_COURSE), 400))
 
-        # Set data for request table
+    # Set data for request table
     requested_course = models.StudentCourseRequest.create(**{'course_id': course_id,
                                                              'student_id': current_user.id,
                                                              'teacher_id': course.teacher_id,
