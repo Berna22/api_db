@@ -85,6 +85,12 @@ def course_teacher_api(current_user, course_id=None):
         # Update course deleted flag
         course.edit(deleted=True)
 
+        # Edit user.course table
+        user = models.User.get_by_id(user_id=current_user.id)
+
+        if course in user.course:
+            user.course.remove(course)
+
         return {}
 
 
@@ -366,6 +372,9 @@ def teacher_courses_api(teacher_id):
 
     # Get all courses for teacher
     teacher_courses = models.User.get_course_for_teacher(teacher_id=teacher_id)
+
+    for teacher_course in teacher_courses:
+        print(teacher_course.course)
 
     if not teacher_courses:
         flask.abort(make_response(jsonify(errors=errors.ERR_NO_COURSES_FOR_TEACHER), 400))

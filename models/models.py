@@ -123,17 +123,6 @@ class BaseModel(object):
         if hasattr(cls, "query"):
             return cls.query.filter(~cls.deleted).order_by(cls.date_of_creation.desc()).all()
 
-    @classmethod
-    def _get_all_paginate(cls, cls_query, page, per_page):
-        return cls_query. \
-            order_by(cls.date_of_creation.desc()) \
-            .paginate(page=page, per_page=per_page, error_out=False)
-
-    @classmethod
-    def get_all_paginate(cls, page, per_page):
-        if hasattr(cls, "query"):
-            return cls._get_all_paginate(cls_query=cls.query, page=page, per_page=per_page).items
-
 
 class RoleEnum(enum.Enum):
     teacher = 'teacher'
