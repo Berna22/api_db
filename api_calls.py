@@ -1,5 +1,3 @@
-import json
-
 import flask
 from flask import request, Blueprint, jsonify, make_response
 
@@ -211,7 +209,7 @@ def teacher_course_api(user_id):
             if not course:
                 flask.abort(make_response(jsonify(errors=errors.ERR_BAD_COURSE_ID), 400))
 
-            if course_id in user.course:
+            if course_id not in user.course:
                 user.course.append(course)
 
         # Edit user for given data
