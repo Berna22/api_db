@@ -1,3 +1,5 @@
+import threading
+
 import flask
 from flask import request, Blueprint, jsonify, make_response
 
@@ -5,6 +7,7 @@ import errors
 import models
 import schema
 from datetime import datetime, date
+import time
 from utils import decorators
 
 api_calls = Blueprint('api_calls', __name__)
@@ -196,6 +199,8 @@ def teacher_course_api(user_id):
 
     # Get course IDs
     new_ids = validated_data.get('course_id', [])
+    existing_courses = list()
+    new_courses = list()
 
     if new_ids:
         # Get existing course IDs
@@ -212,10 +217,15 @@ def teacher_course_api(user_id):
             if course_id not in user.course:
                 user.course.append(course)
 
+            new_courses.append(course_id)
+
+        for course_id in ([int(x) for x in new_ids if x in existing_ids]):
+            existing_courses.append(course_id)
+
         # Edit user for given data
         user.edit(**validated_data)
 
-    return schema.TeacherCourseSchema(many=False).dump(user)
+    return {'existing_courses': existing_courses, 'new_courses': new_courses, 'schema': schema.TeacherCourseSchema(many=False).dump(user)}
 
 
 @api_calls.route('/student/<int:student_id>/add_course/<int:course_id>', methods=['POST'])
