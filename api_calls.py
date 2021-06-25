@@ -1,5 +1,3 @@
-import threading
-
 import flask
 from flask import request, Blueprint, jsonify, make_response
 
@@ -7,7 +5,7 @@ import errors
 import models
 import schema
 from datetime import datetime, date
-import time
+
 from utils import decorators
 
 api_calls = Blueprint('api_calls', __name__)
@@ -219,6 +217,9 @@ def teacher_course_api(user_id):
 
             new_courses.append(course_id)
 
+        if not new_courses:
+            flask.abort(make_response(jsonify(errors=errors.ERR_COURSE_ALREADY_ADDED_TO_TEACHER), 400))
+
         for course_id in ([int(x) for x in new_ids if x in existing_ids]):
             existing_courses.append(course_id)
 
@@ -380,9 +381,6 @@ def teacher_courses_api(teacher_id):
 
     # Get all courses for teacher
     teacher_courses = models.User.get_course_for_teacher(teacher_id=teacher_id)
-
-    for teacher_course in teacher_courses:
-        print(teacher_course.course)
 
     if not teacher_courses:
         flask.abort(make_response(jsonify(errors=errors.ERR_NO_COURSES_FOR_TEACHER), 400))
