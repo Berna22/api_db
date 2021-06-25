@@ -121,7 +121,7 @@ class BaseModel(object):
     @classmethod
     def get_all(cls):
         if hasattr(cls, "query"):
-            return cls.query.order_by(cls.date_of_creation.desc(), ~cls.deleted).all()
+            return cls.query.filter(~cls.deleted).order_by(cls.date_of_creation.desc()).all()
 
     @classmethod
     def _get_all_paginate(cls, cls_query, page, per_page):

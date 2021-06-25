@@ -197,16 +197,6 @@ def teacher_course_api(user_id):
         # Get existing course IDs
         existing_ids = [x.id for x in user.course]
 
-        # Remove course from user
-        for course_id in ([int(x) for x in existing_ids if x not in new_ids]):
-            course = models.Course.get_by_id(course_id=course_id)
-
-            if not course:
-                flask.abort(make_response(jsonify(errors=errors.ERR_BAD_COURSE_ID), 400))
-
-            if course in user.course:
-                user.course.remove(course)
-
         # Add new courses for user
         for course_id in ([int(x) for x in new_ids if x not in existing_ids]):
 
@@ -215,7 +205,7 @@ def teacher_course_api(user_id):
             if not course:
                 flask.abort(make_response(jsonify(errors=errors.ERR_BAD_COURSE_ID), 400))
 
-            if course not in user.course:
+            if course_id in user.course:
                 user.course.append(course)
 
         # Edit user for given data
