@@ -233,7 +233,7 @@ def teacher_course_api(user_id):
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>', methods=['PATCH'])
 @api_calls.route('/student/<int:student_id>/course/<int:course_id>/teacher/<int:teacher_id>', methods=['PATCH'])
 @api_calls.route('/students/<int:student_id>/course', methods=['GET'])
-@decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student, return_user=True)
+@decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student)
 def student_course_api(course_id, teacher_id=None, student_id=None):
     """ Add courses for student"""
 
