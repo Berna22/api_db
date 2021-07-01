@@ -332,7 +332,7 @@ def student_course_api(course_id=None, teacher_id=None, student_id=None):
 
 @api_calls.route('/students/<int:student_id>/complete_course', methods=['GET'])
 @decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student)
-def student_complete_course_api(course_id=None, teacher_id=None, student_id=None):
+def student_complete_course_api(student_id=None):
     """ Get student's complete courses"""
 
     student = models.User.get_by_role(user_id=student_id, role='student')
