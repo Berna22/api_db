@@ -233,8 +233,12 @@ class StudentCourse(db.Model, BaseModel):
     user = db.relationship('User')
 
     @classmethod
-    def get_all_for_user_complete(cls, student_id):
+    def get_all_for_user_incomplete(cls, student_id):
         return cls.query.filter(cls.student_id == student_id, ~cls.complete, ~cls.deleted).all()
+
+    @classmethod
+    def get_all_for_user_complete(cls, student_id):
+        return cls.query.filter(cls.student_id == student_id, cls.complete, ~cls.deleted).all()
 
     @classmethod
     def get_all_for_user(cls, student_id):

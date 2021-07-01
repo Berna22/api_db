@@ -263,7 +263,7 @@ def student_course_api(course_id=None, teacher_id=None, student_id=None):
             flask.abort(make_response(jsonify(errors=errors.ERR_STUDENT_ALREADY_ENROLLED_IN_COURSE), 400))
 
         # Get all existing courses for user
-        user_courses = models.StudentCourse.get_all_for_user_complete(student_id=student_id)
+        user_courses = models.StudentCourse.get_all_for_user_incomplete(student_id=student_id)
         # If user has more than 2 incomplete courses, raise error
         if len(user_courses) >= 2:
             flask.abort(make_response(jsonify(errors=errors.ERR_TOO_MANY_COURSES_FOR_STUDENT), 400))
@@ -318,16 +318,31 @@ def student_course_api(course_id=None, teacher_id=None, student_id=None):
         return schema.UserCourseSchema(many=False).dump(user_course)
 
     if request.method == 'GET':
-        """ Gets all student's courses"""
+        """ Gets all student's incomplete courses"""
 
         student = models.User.get_by_role(user_id=student_id, role='student')
 
         if not student:
             flask.abort(make_response(jsonify(errors=errors.ERR_BAD_USER_ID), 400))
 
-        courses = models.StudentCourse.get_all_for_user_complete(student_id=student_id)
+        courses = models.StudentCourse.get_all_for_user_incomplete(student_id=student_id)
 
         return schema.UserCourseSchema(many=True).dumps(courses, indent=4)
+
+
+@api_calls.route('/students/<int:student_id>/complete_course', methods=['GET'])
+@decorators.check_session_role(models.RoleEnum.teacher, models.RoleEnum.student)
+def student_complete_course_api(course_id=None, teacher_id=None, student_id=None):
+    """ Get student's complete courses"""
+
+    student = models.User.get_by_role(user_id=student_id, role='student')
+
+    if not student:
+        flask.abort(make_response(jsonify(errors=errors.ERR_BAD_USER_ID), 400))
+
+    courses = models.StudentCourse.get_all_for_user_complete(student_id=student_id)
+
+    return schema.UserCourseSchema(many=True).dumps(courses, indent=4)
 
 
 @api_calls.route('/students', methods=['GET'])
