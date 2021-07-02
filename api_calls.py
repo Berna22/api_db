@@ -447,7 +447,12 @@ def course_student_api(current_user, course_id=None):
     if request.method == 'GET':
 
         if course_id:
-            return schema.CourseSchema(many=False).dump(models.Course.get_by_id(course_id))
+            course = models.StudentCourse.get_course_for_user(student_id=current_user.id, course_id=course_id)
+
+            if not course:
+                flask.abort(make_response(jsonify('User already enrolled in this course', 200)))
+
+            return schema.UserCourseSchema(many=False).dump(course)
 
         # Request args
         validated_data = schema.StudentCourseListRequestSchema().load(flask.request.args or {})
