@@ -207,10 +207,10 @@ class Course(db.Model, BaseModel):
         courses = cls.query.join(User, cls.teacher_id == User.id).filter(~cls.deleted)
 
         if course_name:
-            courses = courses.filter(cls.name == course_name)
+            courses = courses.filter(cls.name.ilike(f'%{course_name}%'))
 
         if teacher_name:
-            courses = courses.filter(cls.teacher_id == User.id)
+            courses = courses.filter(db.or_(User.name.ilike(f'%{teacher_name}%'), User.surname.ilike(f'%{teacher_name}%')))
 
         return courses.all()
 
