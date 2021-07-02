@@ -124,4 +124,4 @@ class CourseReqSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = models.StudentCourseRequest
 
-    course = ma.Nested(CourseSchema, many=True)
+    # course = ma.Nested(CourseSchema, many=True)
