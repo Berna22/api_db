@@ -6,7 +6,7 @@ from core import db, create_app
 from flask_migrate import Migrate, MigrateCommand
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://fww:fww2020@localhost/fww3_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:1234@localhost/api_db'
 
 app = create_app(app)
 import models
